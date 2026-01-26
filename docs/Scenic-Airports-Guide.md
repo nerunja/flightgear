@@ -5,8 +5,9 @@
 2. [Top Scenic Airports](#top-scenic-airports)
 3. [Famous Landmarks](#famous-landmarks)
 4. [Regional Highlights](#regional-highlights)
-5. [Tips for Sightseeing Flights](#tips-for-sightseeing-flights)
-6. [Scenery Installation](#scenery-installation)
+5. [USA Scenic Training Routes](#usa-scenic-training-routes)
+6. [Tips for Sightseeing Flights](#tips-for-sightseeing-flights)
+7. [Scenery Installation](#scenery-installation)
 
 ---
 
@@ -261,6 +262,47 @@ Then navigate to KSFO via coastline for Golden Gate Bridge views.
 - Empire State Building
 - Central Park
 - Brooklyn Bridge
+
+---
+
+## USA Scenic Training Routes
+
+VOR-DME & Localizer pairings for instrument training with scenic views.
+
+### 1. Pacific Northwest (Rainier Route)
+
+| Airport | VOR Frequency | Runway | Localizer |
+|---------|---------------|--------|-----------|
+| Seattle-Tacoma (KSEA) | 116.8 (SEA) | 16L | 110.3 |
+| Paine Field (KPAE) | 110.6 (PAE) | 16R | 109.3 |
+
+### 2. Desert Southwest (Valley of the Sun)
+
+| Airport | VOR Frequency | Runway | Localizer |
+|---------|---------------|--------|-----------|
+| Phoenix Harbor (KPHX) | 115.6 (PXR) | 8 | 111.5 |
+| Mesa Gateway (KIWA) | 113.3 (IWA) | 30C | 111.1 |
+
+### 3. Southern California (Pacific Coast)
+
+| Airport | VOR Frequency | Runway | Localizer |
+|---------|---------------|--------|-----------|
+| Los Angeles (KLAX) | 113.6 (LAX) | 25L | 109.9 |
+| Long Beach (KLGB) | 115.7 (LGB) | 30 | 110.3 |
+
+### 4. San Francisco Bay (Bridge to Bridge)
+
+| Airport | VOR Frequency | Runway | Localizer |
+|---------|---------------|--------|-----------|
+| San Francisco (KSFO) | 115.8 (SFO) | 28R | 110.7 |
+| Oakland Intl (KOAK) | 116.8 (OAK) | 30 | 110.5 |
+
+### 5. Rocky Mountains (Front Range)
+
+| Airport | VOR Frequency | Runway | Localizer |
+|---------|---------------|--------|-----------|
+| Denver Intl (KDEN) | 117.0 (DEN) | 34L | 111.3 |
+| Rocky Mtn (KBJC) | 115.4 (BJC) | 30R | 110.1 |
 
 ---
 
