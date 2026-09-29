@@ -418,6 +418,60 @@ The HUD (Heads-Up Display) shows precise angle measurements:
 **ILS Frequency**: 111.10
 **VOR Frequency**: 114.10 (SJC)
 
+#### KSFO Runway 19L (VOR Flying with Localizer On)
+**Localizer Frequency**: 108.90 (NAV1)
+**VOR Frequency**: 115.80 (NAV2, SFO)
+**Runway Heading**: 194°
+
+This setup flies the VOR-style CDI/OBS technique while the localizer frequency is tuned on NAV1, so the CDI shows lateral guidance referenced to the runway centerline instead of a VOR radial. The OBS/radial select is set to the runway heading (194°) rather than left at the default, which keeps the needle sensed correctly for tracking inbound.
+
+**Setup** (offset 3 NM from the runway, 1500 ft, heading 194°, 90 kt):
+```bash
+--aircraft=c172p \
+--airport=KSFO \
+--runway=19L \
+--offset-distance=3.0 \
+--altitude=1500 \
+--heading=194 \
+--glideslope=3.0 \
+--timeofday=noon \
+--enable-hud \
+--vc=90 \
+--prop:/controls/electric/battery-switch=1 \
+--prop:/controls/electric/engine[0]/generator=1 \
+--prop:/controls/switches/master-avionics=1 \
+--prop:/systems/electrical/outputs/avionics=28.0 \
+--prop:/systems/electrical/outputs/nav[0]=28.0 \
+--prop:/systems/electrical/outputs/nav[1]=28.0 \
+--prop:/instrumentation/nav[0]/serviceable=true \
+--prop:/instrumentation/nav[1]/serviceable=true \
+--prop:/instrumentation/nav[0]/power-btn=1 \
+--prop:/instrumentation/nav[1]/power-btn=1 \
+--prop:/instrumentation/nav[0]/volume=1.0 \
+--prop:/instrumentation/nav[1]/volume=1.0 \
+--prop:/instrumentation/nav[0]/frequencies/selected-mhz=108.90 \
+--prop:/instrumentation/nav[0]/frequencies/selected-mhz-prop=108.90 \
+--prop:/instrumentation/nav[0]/frequencies/standby-mhz=111.70 \
+--prop:/instrumentation/nav[1]/frequencies/selected-mhz=115.80 \
+--prop:/instrumentation/nav[1]/frequencies/selected-mhz-prop=115.80 \
+--prop:/instrumentation/comm[0]/frequencies/selected-mhz=118.05 \
+--prop:/instrumentation/comm[0]/frequencies/selected-mhz-prop=118.05 \
+--prop:/instrumentation/comm[0]/frequencies/standby-mhz=120.50 \
+--prop:/instrumentation/comm[1]/frequencies/selected-mhz=121.80 \
+--prop:/instrumentation/comm[1]/frequencies/selected-mhz-prop=121.80 \
+--prop:/instrumentation/comm[1]/frequencies/standby-mhz=118.20 \
+--prop:/instrumentation/nav[0]/radials/selected-deg=194 \
+--prop:/instrumentation/nav[1]/radials/selected-deg=194
+```
+
+**Breakdown**:
+- NAV1 active 108.90 (localizer, standby 111.70), NAV2 active 115.80 (SFO VOR)
+- Both NAV radios powered, volume full, and OBS/radial select preset to 194° (runway heading)
+- COM1 active 118.05 (standby 120.50), COM2 active 121.80 (standby 118.20)
+- Aircraft starts 3 NM out on final, 1500 ft, heading 194°, 90 kt, battery/master avionics/generator on
+
+**Tip**: Instead of adding these as individual launcher options, you can set them all in one shot in the FlightGear Launcher: go to **Settings → Additional Settings**, then paste the entire block directly into the text box (paste just the `--flag=value` lines, without the trailing `\` continuation characters or wrap it as one line).
+
 ---
 
 ## Troubleshooting
