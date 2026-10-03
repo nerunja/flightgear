@@ -133,6 +133,10 @@ setprop("/instrumentation/nav[0]/power-btn", 1);
 setprop("/instrumentation/nav[1]/power-btn", 1);
 setprop("/instrumentation/nav[0]/volume", 1.0);
 setprop("/instrumentation/nav[1]/volume", 1.0);
+setprop("/instrumentation/comm[0]/volume", 1.0);
+
+# Audio Panel: route COMM 1 to the speaker (needed to hear ATIS)
+setprop("/instrumentation/audio-panel/comm-select", 1);
 
 # --- 5. COMM 1 & COMM 2 Frequencies ---
 # COMM 1: Active = 133.77 MHz (KOAK ATIS) | Standby = 121.90 MHz (KOAK Ground)
@@ -169,8 +173,27 @@ setprop("/instrumentation/heading-indicator/offset-deg", 0);
 setprop("/instrumentation/heading-indicator/spin", 1);
 setprop("/instrumentation/heading-indicator/heading-bug-deg", 194);
 setprop("/autopilot/settings/heading-bug-deg", 194);
+setprop("/controls/autoflight/heading-select", 1);
 setprop("/instrumentation/nav[0]/radials/selected-deg", 194);
 setprop("/instrumentation/nav[1]/radials/selected-deg", 194);
 
 print(">>> FlightGear Panel Lighting, DME (KSFO), Radios & Visual Guidance Initialized! <<<");
 ```
+
+---
+
+# Note: NAV 1 Shows "TO" Flag on Takeoff from KOAK
+
+**Question:** With the Nasal script above, should NAV 1 show a FROM flag? On takeoff from KOAK I see a TO flag.
+
+**Answer:** No. Seeing **TO** on NAV 1 when taking off from Oakland Runway 29 is expected and correct.
+
+## Why You See the "TO" Flag
+
+- **Station position relative to you:** NAV 1 is tuned to 111.90 MHz, the localizer for Oakland Runway 29 (I-INB). The localizer antenna sits at the far departure end of Runway 29.
+- **Radial/OBS setting:** The script sets `radials/selected-deg = 194`. Your aircraft starts at the beginning of Runway 29 and flies toward the far end, where the antenna is. You are flying toward the signal source, so the CDI displays **TO**.
+
+## When Will It Change to "FROM"?
+
+- **Passing the antenna:** Once you fly past the localizer antenna at the end of Runway 29 and out over the bay, the flag flips from **TO** to **FROM**.
+- **NAV 2 (SFO VOR, 115.80 MHz):** As you turn left toward heading 194° across the bay, NAV 2 displays **TO**, because you are flying toward the SFO VOR transmitter on the airport grounds.

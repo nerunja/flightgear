@@ -45,6 +45,11 @@ This repository contains detailed guides covering all aspects of FlightGear flig
   - Finding radio frequencies
   - Audio panel configuration
 
+- **[KOAK to KSFO Flight Setup](docs/KOAK-to-KSFO.md)** 🛩️
+  - Flight parameters and aircraft configuration
+  - Nasal console setup
+  - Oakland to San Francisco route walkthrough
+
 ### Advanced Systems
 
 - **[Autopilot and GPS Navigation](docs/Autopilot-and-GPS-Navigation.md)** 🤖
