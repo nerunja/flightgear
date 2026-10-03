@@ -84,7 +84,27 @@
 
 1. Launch FlightGear with your preferred startup flags:
    ```
-   --aircraft=c172p --airport=KOAK --runway=29
+   --aircraft=c172p \
+   --airport=KOAK \
+   --runway=29 \
+   --timeofday=noon \
+   --enable-hud \
+   --prop:/sim/model/c172p/options/enable-damage=false \
+   --prop:/sim/model/c172p/options/enable-frost-fog-icing=false \
+   --prop:/sim/model/c172p/sec-switches/yoke-show-left=false \
+   --prop:/sim/model/c172p/sec-switches/yoke-show-right=false \
+   --prop:/sim/model/c172p/options/show-walker=false \
+   --prop:/sim/model/c172p/options/tyres=1 \
+   --prop:/sim/hud/visibility[0]=true \
+   --prop:/sim/hud/current-color=0 \
+   --prop:/sim/hud/color/red=0.0 \
+   --prop:/sim/hud/color/green=1.0 \
+   --prop:/sim/hud/color/blue=0.0 \
+   --prop:/sim/hud/color/alpha=0.8 \
+   --prop:/sim/rendering/draw-glideslope=true \
+   --prop:/sim/hud/path-markers=true \
+   --prop:/sim/hud/runway-markers=true \
+   --prop:/sim/rendering/draw-hud-airports=true
    ```
 2. Once the simulator loads, open the top menu bar and navigate to **Debug -> Nasal Console**.
 3. Paste the code block below into the window and click **Execute**.
@@ -182,18 +202,12 @@ print(">>> FlightGear Panel Lighting, DME (KSFO), Radios & Visual Guidance Initi
 
 ---
 
-# Note: NAV 1 Shows "TO" Flag on Takeoff from KOAK
+## Why the Flag Doesn't Flip to "FROM" After Passing the Runway
 
-**Question:** With the Nasal script above, should NAV 1 show a FROM flag? On takeoff from KOAK I see a TO flag.
+**Question:** Flying past the end of the KOAK runway still doesn't change the flag from TO to FROM. Why?
 
-**Answer:** No. Seeing **TO** on NAV 1 when taking off from Oakland Runway 29 is expected and correct.
+In a standard VOR receiver, passing the station flips the flag from TO to FROM. NAV 1 is tuned to 111.90 MHz, a Localizer (ILS) frequency (I-INB), so the CDI behaves differently.
 
-## Why You See the "TO" Flag
-
-- **Station position relative to you:** NAV 1 is tuned to 111.90 MHz, the localizer for Oakland Runway 29 (I-INB). The localizer antenna sits at the far departure end of Runway 29.
-- **Radial/OBS setting:** The script sets `radials/selected-deg = 194`. Your aircraft starts at the beginning of Runway 29 and flies toward the far end, where the antenna is. You are flying toward the signal source, so the CDI displays **TO**.
-
-## When Will It Change to "FROM"?
-
-- **Passing the antenna:** Once you fly past the localizer antenna at the end of Runway 29 and out over the bay, the flag flips from **TO** to **FROM**.
-- **NAV 2 (SFO VOR, 115.80 MHz):** As you turn left toward heading 194° across the bay, NAV 2 displays **TO**, because you are flying toward the SFO VOR transmitter on the airport grounds.
+- **Localizers have no TO/FROM logic:** A VOR transmits a 360-degree radial signal, so the receiver can tell whether you are flying toward or away from the station relative to the selected OBS radial. A localizer is a single beam aligned with one runway centerline, and the receiver only processes left/right deviation. On most analog NAV indicators (such as the Bendix/King KI 209 in the C172P), the TO/FROM flag on a LOC frequency is driven out of view, stays fixed on TO, or acts only as a signal-validity (NAV) flag.
+- **Antenna position:** The localizer antenna for KOAK Runway 29 is at the far departure end of the runway. Flying past it over San Francisco Bay, you remain on the front-course side of the beam. The CDI keeps showing your left/right alignment with the runway heading, but it never flips to **FROM** like a VOR radial would.
+- **NAV 2 (SFO VOR, 115.80 MHz):** This is a true VOR, so it does use TO/FROM. As you turn left toward heading 194° across the bay, NAV 2 displays **TO**, because you are flying toward the SFO VOR transmitter on the airport grounds.
