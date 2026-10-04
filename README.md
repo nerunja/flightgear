@@ -49,6 +49,7 @@ This repository contains detailed guides covering all aspects of FlightGear flig
   - Flight parameters and aircraft configuration
   - Nasal console setup
   - Oakland to San Francisco route walkthrough
+  - FAQ (e.g. why the NAV flag stays on TO)
 
 ### Advanced Systems
 
@@ -125,7 +126,7 @@ This repository contains detailed guides covering all aspects of FlightGear flig
 
 **ILS Approaches**:
 - KSFO 28R: 111.70 MHz
-- KOAK 28R: 111.90 MHz
+- KOAK 29: 108.70 MHz
 
 **ATIS**:
 - KSFO: (check charts)

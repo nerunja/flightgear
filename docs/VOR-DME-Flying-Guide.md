@@ -138,7 +138,9 @@ The FlightGear Cessna 172p is equipped with two navigation radios:
 - **Centered needle**: You're on the selected course
 - **Needle deflected LEFT**: The course is to your left; turn left to intercept
 - **Needle deflected RIGHT**: The course is to your right; turn right to intercept
-- **Each dot**: Represents 2° of deviation (full scale = 10°)
+- **Each dot**: The small dots on the face of the indicator, in a row on each side of the center mark. Each dot represents 2° of deviation (5 dots each side, full scale = 10°)
+  - Needle on the 1st dot = 2° off, 2nd dot = 4° off, and so on. On the 5th dot = 10° off (full-scale deflection)
+  - Distance off course grows with distance from the station: 2° is about 0.35 nm at 10 nm, and about 1.7 nm at 50 nm
 
 ![VOR Indicator with OBS Knob](images/vor-indicator-obs-knob.png)
 *VOR indicator showing CDI needle, TO/FROM flag, and OBS knob (left side)*
