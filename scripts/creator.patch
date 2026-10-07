@@ -1,0 +1,68 @@
+diff --git a/creator.py b/creator.py
+index 3ce0d39..d580165 100755
+--- a/creator.py
++++ b/creator.py
+@@ -21,6 +21,7 @@
+ 
+ import math
+ import argparse
++import time
+ import requests
+ import logging
+ import os
+@@ -173,14 +174,24 @@ class ImageProvider:
+         # An array with files objects with each tile
+         ftiles = []
+ 
++        jobs = []
+         for r in range(0, tnum[1]):
+             for c in range(0, tnum[0]):
+                 min_lon = bounds['min_lon'] + c * gtwidth
+                 min_lat = bounds['min_lat'] + r * gtheight
+                 max_lon = min_lon + gtwidth
+                 max_lat = min_lat + gtheight
+-                tbounds = (min_lon, min_lat, max_lon, max_lat)
+-                ftiles.append(self._download_tile(tbounds=tbounds, tsize=tsize, dry_run=dry_run))
++                jobs.append((min_lon, min_lat, max_lon, max_lat))
++        # Pieces are fetched in parallel (FG_ORTHO_JOBS, default 4). Results keep the original order.
++        done = [0]
++        def fetch(tbounds):
++            f = self._download_tile(tbounds=tbounds, tsize=tsize, dry_run=dry_run)
++            done[0] += 1
++            logging.warning('PROGRESS %d/%d', done[0], len(jobs))
++            return f
++        from concurrent.futures import ThreadPoolExecutor
++        with ThreadPoolExecutor(max_workers=int(os.environ.get('FG_ORTHO_JOBS', '4'))) as pool:
++            ftiles = list(pool.map(fetch, jobs))
+         if not dry_run:
+             logging.info('Joining tiles to %s', outpath)
+             with open(outpath, 'wb') as fout:
+@@ -208,7 +219,18 @@ class ImageProvider:
+         logging.info('Downloading tile=%s from url=%s', fout.name, url)
+ 
+         if not dry_run:
+-            response = requests.get(url)
++            # Retry transient server errors (HTTP 5xx, timeouts) with backoff; large tiles hit these often.
++            for attempt in range(1, 9):
++                try:
++                    response = requests.get(url, timeout=120)
++                    if response.status_code == 200 or response.status_code < 500:
++                        break
++                    logging.warning('Server returned status=%s, retry %s/8', response.status_code, attempt)
++                except requests.exceptions.RequestException as e:
++                    logging.warning('Request failed (%s), retry %s/8', e, attempt)
++                time.sleep(min(10 * attempt, 60))
++            else:
++                raise Exception('Failed to download orthophoto after 8 attempts')
+ 
+             if response.status_code != 200:
+                 raise Exception('Failed to download orthophoto. status={}'.format(response.status_code))
+@@ -242,7 +264,7 @@ class ImageProvider:
+             for r in range(0, tnum[1]):
+                 # remember: for paste(), (0,0) is the upper left corner
+                 new_im.paste(images[r * tnum[0] + c], (c * width, (tnum[1] - r - 1) * height))
+-        new_im.save(fout)
++        new_im.save(fout, compress_level=3)
+ 
+ 
+ def main():

@@ -51,6 +51,10 @@ This repository contains detailed guides covering all aspects of FlightGear flig
   - Oakland to San Francisco route walkthrough
   - FAQ (e.g. why the NAV flag stays on TO)
 
+- **[Photo-Realistic Ground (Photoscenery)](docs/Photoscenery-Guide.md)** 🛰️
+  - Satellite/aerial imagery for any region (USGS for the US, ArcGIS worldwide)
+  - Download script and FlightGear setup
+
 ### Advanced Systems
 
 - **[Autopilot and GPS Navigation](docs/Autopilot-and-GPS-Navigation.md)** 🤖
