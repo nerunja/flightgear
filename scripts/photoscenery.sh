@@ -3,7 +3,7 @@
 # Usage: scripts/photoscenery.sh <provider> <latMin> <lonMin> <latMax> <lonMax> [scenery_folder]
 #   provider: USGS (US only, public domain) | ArcGIS (world, Esri terms) | PNOA (Spain)
 #
-# Detail (tile height in pixels) - pick one:
+# Detail = size of a tile's LONGEST side in pixels (tiles are wider than tall away from the tropics) - pick one:
 #   PROFILE=laptop   16384 px  (~0.85 m/px, GPUs with GL_MAX_TEXTURE_SIZE 16384, e.g. Intel Iris Xe)
 #   PROFILE=rtx      32768 px  (~0.42 m/px, NVIDIA RTX class GPUs)
 #   PIXELS=<n>       any power of two from 2048 up
@@ -32,7 +32,6 @@ if [ -z "${PIXELS:-}" ]; then
   echo "Auto-detected max texture size: $PIXELS px"
 fi
 [ $((PIXELS % 2048)) -eq 0 ] || { echo "PIXELS must be a multiple of 2048"; exit 1; }
-COLS=$((PIXELS / 2048))
 if [ "$PIXELS" -eq 16384 ]; then DEFAULT_OUT=$HOME/fg-ortho/scenery; else DEFAULT_OUT=$HOME/fg-ortho/scenery-$((PIXELS / 1024))k; fi
 OUT=${6:-$DEFAULT_OUT}
 CREATOR=${CREATOR:-$HOME/fg-ortho/src/flightgear-photoscenery/creator.py}
@@ -43,7 +42,7 @@ if [ ! -f "$CREATOR" ]; then
   git -C "$(dirname "$CREATOR")" apply "$HERE/creator.patch" || exit 1
 fi
 
-echo "Tile size ${PIXELS}x${PIXELS} px (${COLS}x${COLS} pieces per tile) -> $OUT"
+echo "Longest tile side ${PIXELS} px -> $OUT"
 
 # Sample the box (including its far edges) and let creator.py map each point to its tile.
 python3 -I - "$LAT0" "$LON0" "$LAT1" "$LON1" <<'PY' > "${TMPDIR:-/tmp}/photoscenery-points.$$"
@@ -66,12 +65,16 @@ while read -r lat lon; do
   # Several sample points can fall in the same tile; fetch each tile only once.
   info=$(python3 -I "$CREATOR" --lat "$lat" --lon "$lon" --info_only | grep Index)
   idx=${info##*Index: }
+  # Tile width/height ratio (1 below 22 deg latitude, 2 up to 62 deg, ...): the longest side gets $PIXELS px.
+  ratio=$(printf '%s' "$info" | python3 -I -c "import sys,re; v=[float(x) for x in re.findall(r\"'m(?:in|ax)_(?:lat|lon)': ([-\d.]+)\", sys.stdin.read())]; print(round((v[3]-v[2])/(v[1]-v[0])))")
+  COLS=$((PIXELS / 2048 / ratio))
+  if [ "$COLS" -lt 1 ]; then echo "== Tile $idx: too wide for $PIXELS px (width ratio $ratio), skipping"; continue; fi
   case " $SEEN " in *" $idx "*) continue ;; esac
   SEEN="$SEEN $idx"
   if [ -z "${OVERWRITE:-}" ] && [ -n "$(find "$OUT/Orthophotos" \( -name "$idx.dds" -o -name "$idx.png" \) 2>/dev/null | head -1)" ]; then
     echo "== Tile $idx already present, skipping (OVERWRITE=1 to replace)"; continue
   fi
-  echo "== Tile $idx ($lat, $lon)"
+  echo "== Tile $idx ($lat, $lon) ${COLS}x${COLS} pieces"
   python3 -I "$CREATOR" --lat "$lat" --lon "$lon" --provider "$PROVIDER" \
     --cols "$COLS" --theight 2048 ${OVERWRITE:+--overwrite} --scenery_folder "$OUT" 2>&1 \
     | grep --line-buffered -E 'PROGRESS|Exception|Joining|already exists|Error|retry' | sed -u 's/^[A-Z]*:root://'

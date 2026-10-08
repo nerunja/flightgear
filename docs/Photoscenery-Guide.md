@@ -21,9 +21,9 @@ PROFILE=rtx scripts/photoscenery.sh ArcGIS 12.964 80.140 13.024 80.202
 
 ### Detail profiles
 
-The detail level is the size of each tile in pixels. A tile is about 14 km tall, so more pixels means sharper ground.
+The detail level is the size of a tile's **longest side** in pixels, so it never exceeds your GPU's texture limit. Near the equator (below 22 deg latitude, e.g. Chennai) tiles are square, about 14 km on a side. At Bay Area latitudes they are twice as wide as tall, so a 16384 px profile gives 16384x8192 px there. More pixels means sharper ground.
 
-| Profile | Tile size | Ground detail | For | Output folder | Disk per tile (DDS / PNG) |
+| Profile | Longest side | Ground detail (Chennai) | For | Output folder | Disk per tile (DDS / PNG) |
 |---------|-----------|---------------|-----|---------------|---------------------------|
 | `PROFILE=laptop` | 16384 px | about 0.85 m/px | GPUs reporting a 16384 px limit (Intel Iris Xe) | `~/fg-ortho/scenery` | 179 MB / about 0.5 GB |
 | `PROFILE=rtx` | 32768 px | about 0.42 m/px | NVIDIA RTX class GPUs | `~/fg-ortho/scenery-32k` | 682 MB / about 2 GB |
@@ -63,6 +63,16 @@ Esri's imagery near Chennai has real detail down to about 0.29 m/px (zoom 19); f
 - Show a tile index without downloading: `python3 -I ~/fg-ortho/src/flightgear-photoscenery/creator.py --lat 12.99 --lon 80.17 --info_only` (VOMM is tile 4266425).
 - Fetching a large area strains the provider's servers. Keep boxes small.
 
+### Which areas do I have?
+
+```bash
+python3 -I scripts/photoscenery-list.py            # areas per profile folder
+python3 -I scripts/photoscenery-list.py --tiles    # also one line per tile
+python3 -I scripts/photoscenery-list.py ~/fg-ortho/scenery   # any scenery folder
+```
+
+It prints each area (a group of touching tiles) with its bounding box, centre, tile count, how many tiles have DDS, and the pixel size, for example `12.625N to 13.375N, 79.875E to 80.375E, 24 tiles (24 with DDS), 16384x16384`.
+
 ## 2. DDS
 
 FlightGear prefers `<tile>.dds` over `<tile>.png` in the same folder and needs it compressed (an uncompressed DDS logs a warning). DXT1 with mipmaps cuts texture memory by about 6x: a 16384 px tile drops from about 1 GB of raw RGBA to about 170 MB.
@@ -82,6 +92,30 @@ python3 -I scripts/png2dds.py --force ~/fg-ortho/scenery    # redo all
 2. After starting a flight, enable **View > Rendering Options > Satellite Photoscenery**, or start with `--prop:/sim/rendering/photoscenery/enabled=true`.
 
 Keep TerraSync in the scenery path so terrain, airports and models still load. The photos only replace the ground textures. Use one detail folder at a time.
+
+### Profile folders in this repo
+
+A local copy of the downloaded tiles lives in `photoscenery/` (not tracked by git, see below). Each folder is a complete scenery root with an `Orthophotos/` folder inside:
+
+```
+photoscenery/
+  16k-px/Orthophotos/   laptop profile (16384 px). Chennai VOMM 30 km (24 tiles, PNG + DDS),
+                        plus 6 Bay Area KOAK/KSFO tiles (USGS, 16384x8192, PNG + DDS)
+  32k-px/Orthophotos/   rtx profile (32768 px). Chennai VOMM only, 2 tiles (PNG + DDS)
+```
+
+Point FlightGear at one folder, matching your GPU (run from the repo root, or use the full path):
+
+```bash
+# laptop (GPU limit 16384 px)
+--fg-scenery=$HOME/.fgfs/TerraSync:$PWD/photoscenery/16k-px
+# RTX machine (GPU limit 32768 px)
+--fg-scenery=$HOME/.fgfs/TerraSync:$PWD/photoscenery/32k-px
+```
+
+In the launcher, add the same folder under Add-ons, Additional scenery folders. Only the `.dds` files are needed to fly. The PNGs are only the source for regenerating DDS.
+
+The imagery is git-ignored on purpose (`.git/info/exclude`). It is too large for normal commits (files over 100 MB are rejected by GitHub), and the Chennai tiles are Esri imagery that must not be redistributed from a public repository. Copy the folders to another machine directly, or regenerate them there with `PROFILE=rtx scripts/photoscenery.sh ...`.
 
 ## 4. Troubleshooting
 - **Nothing changes:** the most common cause is that the folder is not in the scenery path. Check `~/.fgfs/fgfs.log` after a launch: `scenery-search-paths` must list the photoscenery folder, and `Registered orthophoto for bucket index ...` lines show the tiles it found. With `--log-level=debug`, `Applying satellite orthophoto to terrain object` lines show where the photos were applied.
