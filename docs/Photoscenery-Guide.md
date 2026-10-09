@@ -19,6 +19,18 @@ PROFILE=laptop scripts/photoscenery.sh ArcGIS 12.964 80.140 13.024 80.202
 PROFILE=rtx scripts/photoscenery.sh ArcGIS 12.964 80.140 13.024 80.202
 ```
 
+### By airport code
+
+```bash
+# What would it download, and how big? (nothing is downloaded)
+PROFILE=laptop scripts/photoscenery.sh ArcGIS --icao VOMM --radius 15 --dry-run
+
+# Download everything within about 15 km of the airport
+PROFILE=laptop scripts/photoscenery.sh ArcGIS --icao VOMM --radius 15
+```
+
+`--icao` takes the airport centre from FlightGear's own `apt.dat.gz` (the middle of its runway ends), so no coordinates are needed. `--radius` is in **kilometres** (default 5). Whole tiles are downloaded, so the covered area is larger than the circle: a tile is about 14 km tall, and 15 km around VOMM touches 12 tiles. `--dry-run` lists the tiles, which are already present, and rough sizes. `--out <folder>` overrides the output folder. The older form with an explicit lat/lon box still works.
+
 ### Detail profiles
 
 The detail level is the size of a tile's **longest side** in pixels, so it never exceeds your GPU's texture limit. Near the equator (below 22 deg latitude, e.g. Chennai) tiles are square, about 14 km on a side. At Bay Area latitudes they are twice as wide as tall, so a 16384 px profile gives 16384x8192 px there. More pixels means sharper ground.
@@ -62,6 +74,30 @@ Esri's imagery near Chennai has real detail down to about 0.29 m/px (zoom 19); f
 - A radius of 30 km around an airport at 13 deg N is about 24 to 30 tiles. At the laptop profile that is roughly 12 to 16 GB of downloads and about 5 GB of DDS.
 - Show a tile index without downloading: `python3 -I ~/fg-ortho/src/flightgear-photoscenery/creator.py --lat 12.99 --lon 80.17 --info_only` (VOMM is tile 4266425).
 - Fetching a large area strains the provider's servers. Keep boxes small.
+
+### Other tools and sources
+
+I searched for alternatives (October 2026). None gives sharper imagery than Esri for areas like Chennai.
+
+| Option | What it is | Notes |
+|--------|------------|-------|
+| [Julia photoscenery generator](https://github.com/abassign/Photoscenary) and its [GUI](https://github.com/abassign/Photoscenery-GUI) | Download by airport and radius, along a route, or live from a running FlightGear | Uses the same servers as `creator.py` (ArcGIS, USGS, PNOA, Geoportal PL), so no better imagery. Needs Julia and ImageMagick. Not tested here. |
+| gis2fg | Turns a raster orthophoto you supply into FlightGear tiles, plus OSM roads, buildings and pylons | Does not download imagery. Debian only. The author says its objects are lower quality than osm2city. Not tested here. |
+| Sentinel-2 | Free, open, global | 10 m per pixel and over-saturated colours. The forum calls it the best open global option, but it is far less sharp than Esri. |
+| Bing | Being added to a Python tool (quadkey tiles) | I could not confirm its status, and its terms of use are not clear. |
+| National open orthophotos | Spain (PNOA), Poland (Geoportal), Bavaria, Switzerland (swisstopo, non-commercial) | Best realism where available. Nothing free was found for India. |
+
+FlightGear loads one image per tile, with no higher resolution inside a tile (as of the 2020.3 forum discussion), so you cannot concentrate detail around an airport.
+
+### Roads and buildings look artificial
+
+Photoscenery only replaces the ground texture. Roads, buildings and trees are separate TerraSync layers (osm2city) drawn on top, with generic textures and OSM-derived shapes. To see the photo's real roads and rooftops, turn layers off and restart FlightGear (they are read when tiles load):
+
+```
+--prop:/sim/rendering/scenery-path-suffix[1]/enabled=false   # Roads
+--prop:/sim/rendering/scenery-path-suffix[2]/enabled=false   # Buildings
+--prop:/sim/rendering/scenery-path-suffix[5]/enabled=false   # Trees
+```
 
 ### Which areas do I have?
 
