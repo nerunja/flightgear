@@ -12,6 +12,9 @@ TerraSync does not carry this imagery. It only syncs FlightGear's generated scen
 # Bay Area (KOAK-KSFO), USGS imagery, laptop profile
 PROFILE=laptop scripts/photoscenery.sh USGS 37.5 -122.5 37.87 -122.01
 
+# New York (KJFK, KLGA, KEWR, Manhattan), USGS imagery, laptop profile - 16 tiles, about 1.4 GB of DDS
+PROFILE=laptop scripts/photoscenery.sh USGS 40.55 -74.32 40.92 -73.68
+
 # Chennai VOMM, about 3 km around the airport, laptop profile
 PROFILE=laptop scripts/photoscenery.sh ArcGIS 12.964 80.140 13.024 80.202
 
@@ -109,6 +112,16 @@ python3 -I scripts/photoscenery-list.py ~/fg-ortho/scenery   # any scenery folde
 
 It prints each area (a group of touching tiles) with its bounding box, centre, tile count, how many tiles have DDS, and the pixel size, for example `12.625N to 13.375N, 79.875E to 80.375E, 24 tiles (24 with DDS), 16384x16384`.
 
+### Areas downloaded so far
+
+| Area | Provider | Command | Tiles | Result |
+|------|----------|---------|-------|--------|
+| Chennai, VOMM 30 km | ArcGIS | `PROFILE=laptop scripts/photoscenery.sh ArcGIS 12.725 79.894 13.264 80.30` | 24 | 16384x16384, 179 MB DDS each |
+| Chennai, VOMM 40 km (extension) | ArcGIS | `PROFILE=laptop scripts/photoscenery.sh ArcGIS --icao VOMM --radius 40` | 18 new (42 in all: 12.625N to 13.375N, 79.75E to 80.625E) | 16384x16384, 170 MB DDS each; 12 of the new ones are mostly sea. Esri capture dates run from Mar 2025 to Mar 2026, 0.3 to 0.5 m source. Stored in `~/fg-ortho/scenery` |
+| Bay Area, KOAK-KSFO | USGS | `PROFILE=laptop scripts/photoscenery.sh USGS 37.5 -122.5 37.87 -122.01` | 6 | 16384x8192, 85 MB DDS each |
+| New York, KJFK/KLGA/KEWR | USGS | `PROFILE=laptop scripts/photoscenery.sh USGS 40.55 -74.32 40.92 -73.68` | 16 | 16384x8192, 85 MB DDS each |
+| Chennai, VOMM 3 km | ArcGIS | `PROFILE=rtx scripts/photoscenery.sh ArcGIS 12.964 80.140 13.024 80.202` | 2 | 32768x32768 (RTX machines only), 682 MB DDS each |
+
 ## 2. DDS
 
 FlightGear prefers `<tile>.dds` over `<tile>.png` in the same folder and needs it compressed (an uncompressed DDS logs a warning). DXT1 with mipmaps cuts texture memory by about 6x: a 16384 px tile drops from about 1 GB of raw RGBA to about 170 MB.
@@ -129,14 +142,52 @@ python3 -I scripts/png2dds.py --force ~/fg-ortho/scenery    # redo all
 
 Keep TerraSync in the scenery path so terrain, airports and models still load. The photos only replace the ground textures. Use one detail folder at a time.
 
+### Full startup settings
+
+The launch options used for the photoscenery flights on the laptop (paste into the launcher's extra command-line options, or append to a `fgfs` command). Remove any space after a trailing `\`, or the line continuation breaks and later flags are dropped.
+
+```bash
+--log-level=debug \
+--aircraft=c172p-bush36 \
+--timeofday=noon \
+--enable-hud \
+--prop:/sim/hud/current-color=0 \
+--prop:/sim/hud/color/red=0.0 \
+--prop:/sim/hud/color/green=1.0 \
+--prop:/sim/hud/color/blue=0.0 \
+--prop:/sim/hud/color/alpha=0.8 \
+--prop:/sim/rendering/glide-slope-tunnel=true \
+--prop:/sim/rendering/scenery-path-suffix[1]/enabled=false \
+--prop:/sim/rendering/scenery-path-suffix[2]/enabled=true \
+--fg-scenery=$HOME/.fgfs/TerraSync:$HOME/fg-ortho/scenery \
+--prop:/sim/rendering/photoscenery/enabled=true
+```
+
+What the scenery lines do:
+
+| Option | Effect |
+|--------|--------|
+| `--fg-scenery=$HOME/.fgfs/TerraSync:$HOME/fg-ortho/scenery` | Adds the photo folder. Keep TerraSync in the path so terrain, airports and models still load. |
+| `--prop:/sim/rendering/photoscenery/enabled=true` | Turns the photo ground on. It is saved to `autosave_2024_1.xml`, so it stays off after a test that disabled it until you set it back. |
+| `scenery-path-suffix[1]` = `false` | Roads layer off. The OSM road ribbons are drawn flat over the photo and hide its real roads. Set to `true` to bring them back. |
+| `scenery-path-suffix[2]` = `true` | Buildings layer on (generic 3D buildings from OSM). Set to `false` to see the bare photo. |
+
+`--log-level=debug` is only for checking that the photos load (see Troubleshooting); drop it for normal flying.
+
+### What you see in the sim versus the imagery
+
+In the sim the ground photo is softer than the downloaded tile looks in an image viewer. A 16384 px tile over about 13.5 km is roughly 0.85 m per pixel, so from a low altitude the texture is magnified, and 16384 px is the ceiling on a GPU with a 16384 px texture limit. Roads and generic buildings are drawn over the photo, and OSM covers only part of the real building stock, so gaps show the soft photo. The photo reads best from a few thousand feet up, with Roads off.
+
 ### Profile folders in this repo
 
 A local copy of the downloaded tiles lives in `photoscenery/` (not tracked by git, see below). Each folder is a complete scenery root with an `Orthophotos/` folder inside:
 
 ```
 photoscenery/
-  16k-px/Orthophotos/   laptop profile (16384 px). Chennai VOMM 30 km (24 tiles, PNG + DDS),
-                        plus 6 Bay Area KOAK/KSFO tiles (USGS, 16384x8192, PNG + DDS)
+  16k-px/Orthophotos/   laptop profile (16384 px longest side), PNG + DDS for each tile:
+                        Chennai VOMM 30 km (24 tiles, 16384x16384),
+                        Bay Area KOAK/KSFO (6 tiles, USGS, 16384x8192),
+                        New York KJFK/KLGA/KEWR (16 tiles, USGS, 16384x8192)
   32k-px/Orthophotos/   rtx profile (32768 px). Chennai VOMM only, 2 tiles (PNG + DDS)
 ```
 
@@ -153,9 +204,33 @@ In the launcher, add the same folder under Add-ons, Additional scenery folders. 
 
 The imagery is git-ignored on purpose (`.git/info/exclude`). It is too large for normal commits (files over 100 MB are rejected by GitHub), and the Chennai tiles are Esri imagery that must not be redistributed from a public repository. Copy the folders to another machine directly, or regenerate them there with `PROFILE=rtx scripts/photoscenery.sh ...`.
 
+### Settings that stick, and custom scenery order
+
+- **Layer switches are saved.** `--prop:/sim/rendering/scenery-path-suffix[N]/enabled=...` options are written to `~/.fgfs/autosave_2024_1.xml` when FlightGear exits. If you test with Roads (`[1]`) or Buildings (`[2]`) switched off, a later normal launch will also have them off. Restore them by starting once with both set to `true`, or by editing the file while FlightGear is closed (it overwrites the file when it exits).
+- **Custom scenery goes before TerraSync.** FlightGear reads object files from each scenery folder in order and stops after the first one that contains terrain. TerraSync has terrain, so a custom folder listed after it is never read. Photoscenery is the exception: orthophotos are found independently, so its position does not matter.
+
 ## 4. Troubleshooting
 - **Nothing changes:** the most common cause is that the folder is not in the scenery path. Check `~/.fgfs/fgfs.log` after a launch: `scenery-search-paths` must list the photoscenery folder, and `Registered orthophoto for bucket index ...` lines show the tiles it found. With `--log-level=debug`, `Applying satellite orthophoto to terrain object` lines show where the photos were applied.
+- **No buildings at all:** check `~/.fgfs/autosave_2024_1.xml`. If the `scenery-path-suffix n="2"` entry (Buildings) or `n="1"` (Roads) says `false`, a test launch switched it off. Start once with `--prop:/sim/rendering/scenery-path-suffix[2]/enabled=true` (and `[1]` for roads).
 - **Blank ground:** the tile size is above your GPU's maximum texture size (see the warning above). Switch to a smaller profile.
 - **Looks only slightly different on the ground:** from the cockpit, the airport surface, buildings and trees hide the photo. Fly a few thousand feet up over the surrounding area to see it clearly.
 - **Memory or stutter:** use DDS, a smaller profile, or a smaller area.
 - **Runways look wrong or blurry:** photos are a few years old and sit under airport markings, so expect minor mismatches.
+
+## 5. Experiments (October 2026)
+
+### More buildings from Overture Maps (not recommended on the laptop)
+
+OpenStreetMap supplies only about a third of the buildings around Chennai. In a 15 km box around VOMM, Overture Maps (which merges OSM with Google Open Buildings and Microsoft ML footprints) has about 1.05 million buildings, of which OSM supplies 33%, Google 57% and Microsoft 11%. Almost none have heights (62 buildings), so osm2city guesses them.
+
+It can be run end to end without installing anything system-wide: pull the `vanosten/o2c_container:ws2` image (16.7 GB) and a local `wiktorn/overpass-api` image, convert the Overture parquet to an OSM file, load it into the local Overpass server, and run osm2city against it (the public Overpass server rejects osm2gear requests without a User-Agent and times out on dense tiles). For a 3 km square around VOMM this produced about 29,600 buildings, twice what OSM alone gives.
+
+Things that went wrong and were fixed:
+- **Machine-detected buildings on the airfield.** Google/Microsoft footprints can sit on runways, aprons and taxiways; FlightGear treats them as solid. The first build had geometry 0.3 m from a runway centreline. Drop non-OSM footprints within the airfield zone and everything within 40 m of a runway.
+- **Wrong scenery order** (see above): the new folder must precede TerraSync, and sit under `Objects/` if TerraSync's `Buildings/` layer is switched off.
+
+Cost: about 20 to 24 fps with the extra buildings against 26 to 30 fps with TerraSync's own, with dips to 3 fps. The visible gain is a denser city with generic facades and guessed heights.
+
+### Terrain shape
+
+The terrain is already good around VOMM. Compared with the Copernicus 30 m model at 1,257 points within 5 km, FlightGear's terrain correlates at 0.94 with a typical difference of about 3 m. FlightGear already has the hills (St Thomas Mount reaches about 120 m); Copernicus peaks are 10 to 20 m higher, and part of its +2 m average is buildings and trees, because it is a surface model. Rebuilding terrain with TerraGear would give a modest gain for a large effort.
