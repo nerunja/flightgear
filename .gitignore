@@ -1,0 +1,10 @@
+# Photoscenery: only the USGS (public domain) DDS tiles are tracked, through Git LFS.
+# Chennai tiles are Esri imagery and the 32k folder is RTX-only; neither is pushed.
+/photoscenery/*
+!/photoscenery/16k-px/
+/photoscenery/16k-px/*
+!/photoscenery/16k-px/Orthophotos/
+/photoscenery/16k-px/Orthophotos/*
+!/photoscenery/16k-px/Orthophotos/w080n40/
+!/photoscenery/16k-px/Orthophotos/w130n30/
+photoscenery/**/*.png

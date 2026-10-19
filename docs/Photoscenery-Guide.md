@@ -202,7 +202,9 @@ Point FlightGear at one folder, matching your GPU (run from the repo root, or us
 
 In the launcher, add the same folder under Add-ons, Additional scenery folders. Only the `.dds` files are needed to fly. The PNGs are only the source for regenerating DDS.
 
-The imagery is git-ignored on purpose (`.git/info/exclude`). It is too large for normal commits (files over 100 MB are rejected by GitHub), and the Chennai tiles are Esri imagery that must not be redistributed from a public repository. Copy the folders to another machine directly, or regenerate them there with `PROFILE=rtx scripts/photoscenery.sh ...`.
+Only the USGS DDS tiles (New York and Bay Area, public domain, 22 files of about 85 MB) are in git, stored with Git LFS (`.gitattributes` tracks `photoscenery/**/*.dds`; `.gitignore` excludes everything else). Each is under GitHub's 100 MB per-file limit, but together they are about 1.9 GB, so they go through LFS to keep the repository itself small. The free LFS quota is 10 GiB of storage and 10 GiB of bandwidth a month, so every clone that pulls them uses about 1.9 GB of it. Install `git-lfs` and run `git lfs install` before cloning, or `git lfs pull` afterwards.
+
+The Chennai tiles are Esri imagery that must not be redistributed from a public repository, the 32k folder is only useful on RTX-class GPUs, and PNGs are only the source for DDS, so none of those are pushed. Copy those folders to another machine directly, or regenerate them there with `PROFILE=rtx scripts/photoscenery.sh ...`.
 
 ### Settings that stick, and custom scenery order
 
